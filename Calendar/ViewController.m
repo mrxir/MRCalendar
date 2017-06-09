@@ -75,6 +75,7 @@
                                                                 action:@selector(didClickDatePickerItem:)];
     self.navigationItem.rightBarButtonItem = dateItem;
     
+    
     CGFloat cellHeight = ceilf(CGRectGetWidth([UIScreen mainScreen].bounds) / 7.0 * 8.0);
     
     UICollectionViewFlowLayout *layout = (id)self.collectionView.collectionViewLayout;

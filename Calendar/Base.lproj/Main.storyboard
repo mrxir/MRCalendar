@@ -40,11 +40,6 @@
                                             <subviews>
                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="e4m-Rh-9Ta" customClass="MRCalendar">
                                                     <rect key="frame" x="0.0" y="0.0" width="375" height="360"/>
-                                                    <userDefinedRuntimeAttributes>
-                                                        <userDefinedRuntimeAttribute type="string" keyPath="year" value="2008"/>
-                                                        <userDefinedRuntimeAttribute type="string" keyPath="months" value="8"/>
-                                                        <userDefinedRuntimeAttribute type="string" keyPath="days" value="8"/>
-                                                    </userDefinedRuntimeAttributes>
                                                 </view>
                                             </subviews>
                                         </view>
