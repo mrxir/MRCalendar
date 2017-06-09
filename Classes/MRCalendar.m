@@ -42,6 +42,29 @@ IB_DESIGNABLE
     return s_calendar;
 }
 
++ (NSString *)getDateDescriptionWithDate:(NSDate *)date formatter:(NSString *)formatter
+{
+    static NSDateFormatter *dateFormatter = nil;
+    if (!dateFormatter) {
+        dateFormatter = [[NSDateFormatter alloc] init];
+    }
+    
+    dateFormatter.dateFormat = formatter;
+    
+    return [dateFormatter stringFromDate:date];
+}
+
++ (NSDate *)getDateWithYear:(NSString *)year month:(NSString *)month day:(NSString *)day
+{
+    NSString *dateDescription = [NSString stringWithFormat:@"%@-%@-%@", year, month, day];
+    static NSDateFormatter *dateFormatter = nil;
+    dateFormatter = [[NSDateFormatter alloc] init];
+    dateFormatter.dateFormat = @"yyyy-MM-dd";
+    NSDate *date = [dateFormatter dateFromString:dateDescription];
+    return date;
+    
+}
+
 + (NSDateComponents *)getDateComponentsWithDate:(NSDate *)date
 {
     NSCalendarUnit unit = NSCalendarUnitYear|NSCalendarUnitMonth|NSCalendarUnitDay|NSCalendarUnitWeekday;
@@ -49,7 +72,7 @@ IB_DESIGNABLE
     NSDateComponents *components = [[MRCalendar sharedCalendar] components:unit fromDate:date];
     
     return components;
-
+    
 }
 
 + (NSDate *)getDateWithDateComponents:(NSDateComponents *)components
@@ -104,7 +127,7 @@ IB_DESIGNABLE
     yearDateFormatter.dateFormat = @"yyyy";
     
     NSDateFormatter *monthDateFormatter = [[NSDateFormatter alloc] init];
-    monthDateFormatter.dateFormat = @"M";
+    monthDateFormatter.dateFormat = @"MM";
     
     NSDate *date = [NSDate date];
     
@@ -124,18 +147,18 @@ IB_DESIGNABLE
 - (void)setYear:(NSString *)year
 {
     if (![_year isEqualToString:year]) {
-     
+        
         _year = year;
         
         [self reloadData];
-
+        
     }
 }
 
 - (void)setMonths:(NSString *)months
 {
     if (![_months isEqual:months]) {
-    
+        
         _months = months;
         
         NSMutableArray *monthComponents = nil;
@@ -358,17 +381,6 @@ IB_DESIGNABLE
     return dictionary;
 }
 
-- (NSDate *)getDateWithYear:(NSString *)year month:(NSString *)month day:(NSString *)day
-{
-    NSString *dateDescription = [NSString stringWithFormat:@"%@-%@-%@", year, month, day];
-    static NSDateFormatter *dateFormatter = nil;
-    dateFormatter = [[NSDateFormatter alloc] init];
-    dateFormatter.dateFormat = @"yyyy-M-d";
-    NSDate *date = [dateFormatter dateFromString:dateDescription];
-    return date;
-    
-}
-
 // 这部分数据应该在该 section 计算完之后保存起来, 当 row 中需要时直接使用
 - (NSUInteger)getDaysOfCurrentMonthInSection:(NSInteger)section
 {
@@ -376,7 +388,7 @@ IB_DESIGNABLE
     NSString *month = [NSString stringWithFormat:@"%@", self.monthArray[section]];
     
     // 当月 当日 date
-    NSDate *dateForSection = [self getDateWithYear:self.year month:month day:month];
+    NSDate *dateForSection = [MRCalendar getDateWithYear:self.year month:month day:month];
     
     // 当月天数
     NSUInteger days = [MRCalendar getCalendarRangeOfUnit:NSCalendarUnitDay
@@ -392,24 +404,28 @@ IB_DESIGNABLE
     NSString *month = [NSString stringWithFormat:@"%@", self.monthArray[section]];
     
     // 当前 section 中展示的月的 date
-    NSDate *dateForSection = [self getDateWithYear:self.year month:month day:month];
+    NSDate *dateForSection = [MRCalendar getDateWithYear:self.year month:month day:month];
+    
+    /*
+     ** 当前 section 中展示的月的上一个月的 date
+     ** 当 month 发生改变, 可能已经跨年 **
+     */
+    NSDate *lastMonthOfDateforSection = [[MRCalendar sharedCalendar] dateByAddingUnit:NSCalendarUnitMonth
+                                                                                value:-1
+                                                                               toDate:dateForSection
+                                                                              options:0];
     
     // 当前 section 中展示的月的前一个月的 dateComponents
-    NSDateComponents *dateComponentsForSection = [MRCalendar getDateComponentsWithDate:dateForSection];
-    [dateComponentsForSection setMonth:dateComponentsForSection.month - 1];
-    
-    // 当前 section 中展示的月的前一个月的 dateComponents 的 date
-    // ** 当 month 发生改变, 可能已经跨年 **
-    NSDate *lastMonthOfDateforSection = [MRCalendar getDateWithDateComponents:dateComponentsForSection];
+    NSDateComponents *dateComponentsForSection = [MRCalendar getDateComponentsWithDate:lastMonthOfDateforSection];
     
     // 上月天数
     NSUInteger days = [MRCalendar getCalendarRangeOfUnit:NSCalendarUnitDay
                                                   inUnit:NSCalendarUnitMonth
                                                  forDate:lastMonthOfDateforSection].length;
     // 上月最后一天的 date
-    NSDate *lastDayDate = [self getDateWithYear:[NSString stringWithFormat:@"%d", (unsigned)dateComponentsForSection.year]
-                                          month:[NSString stringWithFormat:@"%d", (unsigned)dateComponentsForSection.month]
-                                            day:[NSString stringWithFormat:@"%d", (unsigned)days]];
+    NSDate *lastDayDate = [MRCalendar getDateWithYear:[NSString stringWithFormat:@"%d", (unsigned)dateComponentsForSection.year]
+                                                month:[NSString stringWithFormat:@"%d", (unsigned)dateComponentsForSection.month]
+                                                  day:[NSString stringWithFormat:@"%d", (unsigned)days]];
     
     // 上月的最后一天的 date 的 dateComponents
     NSDateComponents *dateComponents = [MRCalendar getDateComponentsWithDate:lastDayDate];
@@ -438,6 +454,8 @@ IB_DESIGNABLE
 
 - (NSArray *)getSegmentationArrayWithConsecutiveNumberInArray:(NSArray *)numberArray
 {
+    numberArray = [numberArray sortedArrayUsingSelector:@selector(compare:)];
+    
     NSUInteger count = numberArray.count;
     
     NSUInteger previousValue = 0;
@@ -581,7 +599,9 @@ IB_DESIGNABLE
         
         monthItem.year = [NSString stringWithFormat:@"%@年", self.year];
         
-        NSString *month = self.monthArray[indexPath.row];
+        NSUInteger monthInteger = [self.monthArray[indexPath.row] integerValue];
+        
+        NSString *month = [NSString stringWithFormat:@"%01d", (unsigned)monthInteger];
         
         monthItem.month = [NSString stringWithFormat:@"%@月", month];
         
@@ -653,7 +673,7 @@ IB_DESIGNABLE
         
         item.itemStyle = MRCalendarItemStyleWeekday;
         
-    // (6, (6 + daysOfLastMonthInSection)] is days of last month index path
+        // (6, (6 + daysOfLastMonthInSection)] is days of last month index path
     } else if (indexPath.row <= (6 + daysOfLastMonthInSection)) {
         
         // 暂时先不显示具体是几号到几号, 之后有空再计算
@@ -661,19 +681,19 @@ IB_DESIGNABLE
         
         item.coverStyle = MRCalendarItemCoverViewStyleNone;
         
-    // (daysOfLastMonthInSection, (daysOfLastMonthInSection + daysOfLastMonthInSection)] is days of current month index path
+        // (daysOfLastMonthInSection, (daysOfLastMonthInSection + daysOfLastMonthInSection)] is days of current month index path
     } else if (indexPath.row <= (6 + daysOfLastMonthInSection + daysOfCurrentMonthInSection)) {
         
         NSUInteger day = indexPath.row - 6 - daysOfLastMonthInSection;
-     
+        
         item.title = [NSString stringWithFormat:@"%d", (unsigned)day];
         
-        NSString *dayDescription = [NSString stringWithFormat:@"%d", (unsigned)day];
+        NSString *dayDescription = [NSString stringWithFormat:@"%02d", (unsigned)day];
         
         NSString *style = [self.itemCoverViewStyleDictionary objectForKey:dayDescription];
         
         item.coverStyle = style;
-
+        
     } else {
         
         // 暂时先不显示

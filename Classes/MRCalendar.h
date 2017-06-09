@@ -36,4 +36,16 @@ IB_DESIGNABLE
 
 @property (nonatomic, assign) IBInspectable CGFloat minLineSpacing;
 
++ (NSCalendar *)sharedCalendar;
+
++ (NSString *)getDateDescriptionWithDate:(NSDate *)date formatter:(NSString *)formatter;
+
++ (NSDate *)getDateWithYear:(NSString *)year month:(NSString *)month day:(NSString *)day;
+
++ (NSDateComponents *)getDateComponentsWithDate:(NSDate *)date;
+
++ (NSDate *)getDateWithDateComponents:(NSDateComponents *)components;
+
++ (NSRange)getCalendarRangeOfUnit:(NSCalendarUnit)smaller inUnit:(NSCalendarUnit)larger forDate:(NSDate *)date;
+
 @end

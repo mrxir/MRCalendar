@@ -38,12 +38,9 @@
     NSBundle *bundle = [NSBundle mainBundle];
 #endif
     MRCalendarItem *item = [bundle loadNibNamed:@"MRCalendarItem"
-                                             owner:nil
-                                           options:nil].firstObject;
+                                          owner:nil
+                                        options:nil].firstObject;
     item.frame = frame;
-    
-    // 设置默认背景色 白色
-//    item.backgroundColor = [UIColor whiteColor];
     
     return item;
 }
@@ -53,7 +50,7 @@
 - (void)setTitle:(NSString *)title
 {
     if (![_title isEqualToString:title]) {
-    
+        
         _title = title;
         
         [self setNeedsLayout];
@@ -64,7 +61,7 @@
 - (void)setItemStyle:(NSUInteger)itemStyle
 {
     if (_itemStyle != itemStyle) {
-    
+        
         _itemStyle = itemStyle;
         
         [self setNeedsLayout];
@@ -75,7 +72,7 @@
 - (void)setCoverStyle:(NSString *)coverStyle
 {
     if (![_coverStyle isEqualToString:coverStyle]) {
-    
+        
         _coverStyle = coverStyle;
         
         [self setNeedsLayout];
@@ -93,7 +90,7 @@
     
     // 设置 cover view 样式
     [self layoutCoverViewIfNeed];
-
+    
     // 全局设置样式
     [self layoutItemStyleIfNeed];
     
